@@ -1,0 +1,36 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+#lifeWorld{
+    border: 1px solid #000000;
+
+}
+.row{
+    display: flex;
+    justify-content: center;
+
+}
+.row>div    {
+    width: 10px;
+    height: 10px;
+    margin: 2px;
+    border: 1px solid #000000;
+}
+.void{
+    /*background-color: ;*/
+    background-color: aquamarine;
+}
+.live{
+    /*background-color: lightskyblue;*/
+    background-color: darkgrey;
+}
+#controls button, #controls span{
+    margin: 5px;
+    font-size: 14px;
+    padding: 5px;
+}
+#controls span{
+    font-size: 18px;
+}
