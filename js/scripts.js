@@ -5,6 +5,14 @@
 // } from "./gameUtils.js";
 
 
+const drawField = (gameField) =>
+  gameField.forEach((row, i) =>
+    row.forEach((cell, j) => {
+      const htmlCell = document.querySelector(`[data-j='${j}'][data-i='${i}']`);
+      htmlCell.className = cell ? "live" : "void";
+    })
+  );
+
 const random = (gameField) =>
   gameField.map((row) =>
     row.map((cell) => {
