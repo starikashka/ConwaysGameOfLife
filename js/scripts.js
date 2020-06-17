@@ -1,8 +1,23 @@
-import {
-  getGameField,
-  makeGameFieldEditable,
-  getGameFieldHTML,
-} from "./gameUtils.js";
+// import {
+//   getGameField,
+//   makeGameFieldEditable,
+//   getGameFieldHTML,
+// } from "./gameUtils.js";
+
+
+const random = (gameField) =>
+  gameField.map((row) =>
+    row.map((cell) => {
+      return Math.random() > 0.5;
+    })
+  );
+
+const reset = (gameField) =>
+  gameField.map((row) =>
+    row.map((cell) => {
+      return false;
+    })
+  );
 
 const init = () => {
   function initControl() {
@@ -98,59 +113,15 @@ const init = () => {
     return count++;
   }
 
-  function reset() {
-    let startBtn = document.getElementById("start");
-    runLife = false;
-    clearTimeout(timer);
-    startBtn.innerText = "Start";
-    for (var i = 0; i < rows; i++) {
-      for (var j = 0; j < cols; j++) {
-        gameField[i][j] = false;
-      }
-    }
-    generation = 0;
-    generationText.innerText = "Generation: " + generation;
-    population = 0;
-    populationText.innerText = "Population: " + population;
-  }
-  function drawField() {
-    for (var i = 0; i < rows; i++) {
-      for (var j = 0; j < cols; j++) {
-        let cell = document.getElementById(`${i}-${j}`);
-        if (gameField[i][j]) {
-          cell.className = "live";
-          cell.innerText = "t";
-        } else {
-          cell.className = "void";
-          cell.innerText = "f";
-        }
-      }
-    }
-  }
-  function random() {
-    population = 0;
-    for (var i = 0; i < rows; i++) {
-      for (var j = 0; j < cols; j++) {
-        if (Math.random() > 0.5) {
-          gameField[i][j] = true;
-          population++;
-        } else {
-          gameField[i][j] = false;
-        }
-      }
-    }
-    populationText.innerText = "Population: " + population;
-    generation = 0;
-    generationText.innerText = "Generation: " + generation;
-    // console.log(gameField);
-  }
   function resetLife() {
-    reset();
-    drawField();
+    gameField = reset(gameField);
+    console.log(gameField);
+    drawField(gameField);
   }
   function randomLife() {
-    random();
-    drawField();
+    gameField = random(gameField);
+    // console.log(gameField);
+    drawField(gameField);
   }
 
   let rows = 50;
@@ -162,18 +133,32 @@ const init = () => {
   let generation = 0;
   let runLife = false;
   let timer;
+  const controls = ["start", "reset", "random"];
 
   const speed = 500;
   let gameField = getGameField(rows, cols);
   const gameRootElement = document.getElementById("lifeWorld");
-  gameRootElement.innerHTML = getGameFieldHTML(gameField);
-  gameRootElement.addEventListener("click", makeGameFieldEditable(gameField));
 
-  initControl();
+  // Create html field
+  const gameFieldElement = document.createElement("div");
+  gameFieldElement.className = "lifeWorld";
+  gameRootElement.appendChild(gameFieldElement);
+
+  gameFieldElement.innerHTML = getGameFieldHTML(gameField);
+  gameFieldElement.addEventListener("click", makeGameFieldEditable(gameField));
+
+  // Create html Controls;
+  // drawField(gameField);
+  // gameField = random(gameField);
+  // console.log(gameField);
+  // drawField(gameField);
+
   let generationText = document.getElementById("generation");
   generationText.innerText = "Generation: " + generation;
   let populationText = document.getElementById("population");
   populationText.innerText = "Population: " + population;
+
+  initControl();
 };
 
 init();
