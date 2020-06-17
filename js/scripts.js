@@ -1,172 +1,87 @@
-// import {
-//   getGameField,
-//   makeGameFieldEditable,
-//   getGameFieldHTML,
-// } from "./gameUtils.js";
+import {
+  getGameField,
+  makeGameFieldEditable,
+  getGameFieldHTML,
+  generate2DetentionsArray,
+  getRandomBoolean,
+} from "./gameUtils.js";
 
+const reset = (gameField) => gameField.map((row) => row.map((cell) => false));
 
-const drawField = (gameField) =>
-  gameField.forEach((row, i) =>
-    row.forEach((cell, j) => {
-      const htmlCell = document.querySelector(`[data-j='${j}'][data-i='${i}']`);
-      htmlCell.className = cell ? "live" : "void";
-    })
-  );
-
-const random = (gameField) =>
-  gameField.map((row) =>
-    row.map((cell) => {
-      return Math.random() > 0.5;
-    })
-  );
-
-const reset = (gameField) =>
-  gameField.map((row) =>
-    row.map((cell) => {
-      return false;
-    })
-  );
+const renderGame = (gameField) => {
+  const gameRootElement = document.getElementById("lifeWorld");
+  gameRootElement.innerHTML = getGameFieldHTML(gameField);
+  gameRootElement.addEventListener("click", makeGameFieldEditable(gameField));
+};
 
 const init = () => {
-  function initControl() {
-    let start = document.getElementById("start");
-    start.onclick = startLife;
+  const startButton = document.getElementById("start");
+  const resetButton = document.getElementById("reset");
+  const randomButton = document.getElementById("random");
 
-    let reset = document.getElementById("reset");
-    reset.onclick = resetLife;
+  const toggleGame = (gameField, speed) => {
+    let gameTimer = 0;
 
-    let random = document.getElementById("random");
-    random.onclick = randomLife;
-  }
-  function startLife() {
-    // console.log(this)
-    if (runLife) {
-      runLife = false;
-      clearTimeout(timer);
-      this.innerText = "Start";
-    } else {
-      runLife = true;
-      run();
-      this.innerText = "Stop";
-    }
-  }
-  function run() {
-    nextGeneration();
-    timer = setTimeout(run, speed);
-    // timer = setTimeout(startLife, speed);
-  }
-  function nextGeneration() {
-    population = 0;
-    for (let i = 0; i < rows; i++) {
-      for (let j = 0; j < cols; j++) {
-        liveForecast(i, j);
-      }
-    }
-    // gameField = [...nextArrayField];
-    for (let i = 0; i < rows; i++) {
-      for (let j = 0; j < cols; j++) {
-        gameField[i][j] = nextArrayField[i][j];
-        nextArrayField[i][j] = false;
-      }
-    }
-    drawField(gameField, rows, cols);
-
-    generation++;
-    generationText.innerText = "Generation: " + generation;
-
-    populationText.innerText = "Population: " + population;
-  }
-  function liveForecast(row, col) {
-    let neighbors = countNeighbors(row, col);
-    // console.log("----------------")
-    // console.log(`${row}, ${col} - ${neighbors}`);
-
-    if (gameField[row][col]) {
-      if (neighbors < 2 || neighbors > 3) {
-        nextArrayField[row][col] = false;
-        // console.log(`${row}, ${col} - ${neighbors} false 1`);
-        // } else if(neighbors > 3){
-        //     nextArrayField[row][col] = false;
-        //     // console.log(`${row}, ${col} - ${neighbors} false 2`);
+    return () => {
+      if (gameTimer) {
+        clearTimeout(gameTimer);
+        gameTimer = 0;
+        startButton.innerText = "Start";
       } else {
-        nextArrayField[row][col] = true;
-        // console.log(`${row}, ${col} - ${neighbors} true 3`);
+        gameTimer = setInterval(nextGeneration, speed);
+        startButton.innerText = "Stop";
       }
-    } else if (neighbors === 3) {
-      nextArrayField[row][col] = true;
-      // console.log(`${row}, ${col} - ${neighbors} true 4`);
-    } else {
-      nextArrayField[row][col] = false;
-      // console.log(`${row}, ${col} - ${neighbors} false 5`);
-    }
-    if (nextArrayField[row][col]) {
-      population++;
-    }
-  }
-  function countNeighbors(row, col) {
-    let count = 0;
+    };
+  };
 
-    if (row - 1 > -1 && col - 1 > -1 && gameField[row - 1][col - 1]) count++;
-    if (row - 1 > -1 && gameField[row - 1][col]) count++;
-    if (row - 1 > -1 && col + 1 < cols && gameField[row - 1][col + 1]) count++;
+  const initControls = (gameField) => {
+    startButton.onclick = toggleGame(gameField, 500);
+    resetButton.onclick = resetGame;
+    randomButton.onclick = randomGame;
+  };
 
-    if (col - 1 > -1 && gameField[row][col - 1]) count++;
-    if (col + 1 < cols && gameField[row][col + 1]) count++;
+  const getNextGeneration = (gameField) =>
+    generate2DetentionsArray(gameField.length, gameField[0].length, (i, j) =>
+      liveForecast(i, j, gameField)
+    );
 
-    if (row + 1 < rows && col - 1 > -1 && gameField[row + 1][col - 1]) count++;
-    if (row + 1 < rows && gameField[row + 1][col]) count++;
-    if (row + 1 < rows && col + 1 < cols && gameField[row + 1][col + 1])
-      count++;
+  const liveForecast = (row, col, gameField) => {
+    let neighbors = countNeighbors(row, col, gameField);
 
-    return count++;
-  }
+    return gameField[row][col]
+      ? neighbors === 3 || neighbors === 2
+      : neighbors === 3;
+  };
 
-  function resetLife() {
-    gameField = reset(gameField);
-    console.log(gameField);
-    drawField(gameField);
-  }
-  function randomLife() {
-    gameField = random(gameField);
-    // console.log(gameField);
-    drawField(gameField);
-  }
+  const countNeighbors = (row, col, gameField) =>
+    (gameField[row - 1]?.[col - 1] ? 1 : 0) +
+    (gameField[row - 1]?.[col] ? 1 : 0) +
+    (gameField[row - 1]?.[col + 1] ? 1 : 0) +
+    (gameField[row][col - 1] ? 1 : 0) +
+    (gameField[row][col + 1] ? 1 : 0) +
+    (gameField[row + 1]?.[col - 1] ? 1 : 0) +
+    (gameField[row + 1]?.[col] ? 1 : 0) +
+    (gameField[row + 1]?.[col + 1] ? 1 : 0);
 
-  let rows = 50;
-  let cols = 50;
+  const resetGame = () => {
+    console.log("TODO: implement!");
+  };
 
-  let nextArrayField = new Array(rows);
+  const nextGeneration = () => {
+    gameField = getNextGeneration(gameField);
 
-  let population = 0;
-  let generation = 0;
-  let runLife = false;
-  let timer;
-  const controls = ["start", "reset", "random"];
+    renderGame(gameField);
+  };
 
-  const speed = 500;
-  let gameField = getGameField(rows, cols);
-  const gameRootElement = document.getElementById("lifeWorld");
+  const randomGame = () => {
+    gameField = generate2DetentionsArray(gameField.length, gameField[0].length, getRandomBoolean);
 
-  // Create html field
-  const gameFieldElement = document.createElement("div");
-  gameFieldElement.className = "lifeWorld";
-  gameRootElement.appendChild(gameFieldElement);
+    renderGame(gameField);
+  };
 
-  gameFieldElement.innerHTML = getGameFieldHTML(gameField);
-  gameFieldElement.addEventListener("click", makeGameFieldEditable(gameField));
-
-  // Create html Controls;
-  // drawField(gameField);
-  // gameField = random(gameField);
-  // console.log(gameField);
-  // drawField(gameField);
-
-  let generationText = document.getElementById("generation");
-  generationText.innerText = "Generation: " + generation;
-  let populationText = document.getElementById("population");
-  populationText.innerText = "Population: " + population;
-
-  initControl();
+  let gameField = getGameField(10, 10);
+  renderGame(gameField);
+  initControls(gameField);
 };
 
 init();

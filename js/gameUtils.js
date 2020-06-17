@@ -1,7 +1,11 @@
-export const getGameField = (rows, cols) =>
-  Array(rows)
+export const getRandomBoolean = () => Math.random() > 0.5;
+export const generate2DetentionsArray = (rowCount, columnCount, valueFn) =>
+  new Array(rowCount)
     .fill()
-    .map(() => Array(cols).fill());
+    .map((_, i) => new Array(columnCount).fill().map((_, j) => valueFn(i, j)));
+
+export const getGameField = (rows, cols) =>
+  generate2DetentionsArray(rows, cols, () => false);
 
 export const makeGameFieldEditable = (gameField) => (ev) => {
   const el = ev.target;
@@ -22,7 +26,9 @@ export const getGameFieldHTML = (gameField) =>
         `<div class="row">${row
           .map(
             (cell, j) =>
-              `<div data-j = "${j}" data-i="${i}" class="void"></div>`
+              `<div data-j = "${j}" data-i="${i}" class=${
+                gameField[i][j] ? "live" : "void"
+              }></div>`
           )
           .join("")}</div>`
     )
